@@ -56,7 +56,7 @@ const { data, pending, error } = await useFetch<ScoreResponse>('/api/score', {
   method: 'POST',
   body: {
     company_id: props.companyId,
-    dimensions: { governance: 80, innovation: 70, operations: 65, finance: 75, sustainability: 72 },
+    dimensions: { governance: 95, innovation: 90, operations: 88, finance: 92, sustainability: 87 },
   },
 })
 </script>
@@ -128,7 +128,7 @@ const { data, pending, error } = await useFetch<ScoreResponse>('/api/score', {
   margin-bottom: 6px;
 }
 
-.grade-a { background: linear-gradient(135deg, #00c8d7, #00a8b5); }
+.grade-a { background: linear-gradient(135deg, #22c55e, #16a34a); }
 .grade-b { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .grade-c { background: linear-gradient(135deg, #f59e0b, #d97706); }
 .grade-d { background: linear-gradient(135deg, #ef4444, #dc2626); }
