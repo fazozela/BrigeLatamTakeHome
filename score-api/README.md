@@ -19,10 +19,10 @@ uv pip install -e ".[dev]"
 ## Running locally
 
 ```bash
-uvicorn score_service.main:app --reload --port 8080
+uvicorn score_service.main:app --reload --port 8000
 ```
 
-API docs available at `http://localhost:8080/docs`.
+API docs available at `http://localhost:8000/docs`.
 
 ## Running tests
 
@@ -40,8 +40,10 @@ ruff check score_service/ tests/
 
 ```bash
 docker build -t score-service .
-docker run -p 8080:8080 score-service
+docker run -p 8000:8080 score-service
 ```
+
+The container runs uvicorn on port 8080 internally. The `-p 8000:8080` flag maps it to port 8000 on the host, which is what the dashboard expects.
 
 ## Endpoints
 
