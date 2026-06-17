@@ -56,7 +56,7 @@ const { data, pending, error } = await useFetch<ScoreResponse>('/api/score', {
   method: 'POST',
   body: {
     company_id: props.companyId,
-    dimensions: { governance: 95, innovation: 90, operations: 88, finance: 92, sustainability: 87 },
+    dimensions: { governance: 80, innovation: 70, operations: 65, finance: 75, sustainability: 72 },
   },
 })
 </script>
