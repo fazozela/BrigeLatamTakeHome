@@ -1,9 +1,10 @@
 FROM python:3.12-slim AS builder
 
 WORKDIR /build
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY pyproject.toml .
 COPY score_service/ score_service/
-RUN pip install --no-cache-dir .
+RUN uv pip install --system --no-cache .
 
 FROM python:3.12-slim
 

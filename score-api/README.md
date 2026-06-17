@@ -5,14 +5,15 @@ FastAPI service that computes a composite health score for a company based on fi
 ## Requirements
 
 - Python 3.12+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - Docker (optional)
 
 ## Setup
 
 ```bash
-python3 -m venv .venv
+uv venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 ## Running locally
