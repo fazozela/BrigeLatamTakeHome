@@ -14,6 +14,11 @@ COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/uvicorn
 COPY score_service/ score_service/
 
 ENV SCORE_SERVICE_PORT=8080
+ENV SCORE_LOG_LEVEL=INFO
 EXPOSE 8080
 
-CMD ["uvicorn", "score_service.main:app", "--host", "0.0.0.0", "--port", "8080"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request,sys; \
+sys.exit(0 if urllib.request.urlopen('http://localhost:'+__import__('os').environ.get('SCORE_SERVICE_PORT','8080')+'/health', timeout=2).status==200 else 1)"
+
+CMD ["sh", "-c", "exec uvicorn score_service.main:app --host 0.0.0.0 --port ${SCORE_SERVICE_PORT:-8080} --log-level ${SCORE_LOG_LEVEL:-info}"]

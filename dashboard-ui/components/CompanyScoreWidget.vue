@@ -52,12 +52,27 @@ interface ScoreResponse {
 
 const props = defineProps<{ companyId: string }>()
 
+// Demo dimensions from the take-home spec. Centralised so the regression
+// test (and the spec example) can import a single source of truth.
+const DEMO_DIMENSIONS = {
+  governance: 80,
+  innovation: 70,
+  operations: 65,
+  finance: 75,
+  sustainability: 72,
+} as const
+
+// `useFetch` with a top-level `await` only fires on mount and does not
+// refetch when props change. Wrap the body in a computed and pass a
+// `watch` so the widget re-queries when the parent hands it a new
+// `companyId` (e.g. on route change).
 const { data, pending, error } = await useFetch<ScoreResponse>('/api/score', {
   method: 'POST',
-  body: {
+  body: computed(() => ({
     company_id: props.companyId,
-    dimensions: { governance: 80, innovation: 70, operations: 65, finance: 75, sustainability: 72 },
-  },
+    dimensions: DEMO_DIMENSIONS,
+  })),
+  watch: [() => props.companyId],
 })
 </script>
 
