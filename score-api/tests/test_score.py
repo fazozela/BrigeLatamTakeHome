@@ -160,3 +160,96 @@ def test_compute_composite_uniform_value():
 ])
 def test_assign_grade_boundaries(score, expected_grade):
     assert assign_grade(score) == expected_grade
+
+
+# ---------------------------------------------------------------------------
+# API-level boundary tests.
+#
+# `compute_composite` rounds to 2 dp and `assign_grade` runs on the rounded
+# value. These tests pin the boundary through the full request/response
+# pipeline (not just `assign_grade` in isolation) so future refactors of
+# `compute_composite` cannot quietly flip a grade.
+# ---------------------------------------------------------------------------
+import math
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "uniform_value,expected_grade,expected_composite",
+    [
+        (70.0, "B", 70.0),    # exact boundary: still B
+        (69.99, "C", 69.99),  # just below: C
+        (85.0, "A", 85.0),    # exact boundary: A
+        (84.99, "B", 84.99),  # just below: B
+    ],
+)
+async def test_score_api_grade_boundaries(
+    client, uniform_value, expected_grade, expected_composite
+):
+    payload = {
+        **VALID_PAYLOAD,
+        "dimensions": {k: uniform_value for k in VALID_DIMS},
+    }
+    response = await client.post("/score", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["composite_score"] == pytest.approx(expected_composite, abs=0.01)
+    assert data["grade"] == expected_grade
+
+
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "uniform_value,expected_grade,expected_composite",
+    [
+        (70.0, "B", 70.0),   # exact boundary: still B
+        (69.99, "C", 69.99), # just below: C
+        (85.0, "A", 85.0),   # exact boundary: A
+        (84.99, "B", 84.99), # just below: B
+    ],
+)
+async def test_score_api_grade_boundaries(client, uniform_value, expected_grade, expected_composite):
+    payload = {
+        **VALID_PAYLOAD,
+        "dimensions": {k: uniform_value for k in VALID_DIMS},
+    }
+    response = await client.post("/score", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["composite_score"] == pytest.approx(expected_composite, abs=0.01)
+    assert data["grade"] == expected_grade
+
+
+@pytest.mark.asyncio
+async def test_score_422_body_identifies_failing_field(client):
+    """422 responses must include the field path so clients can render a
+    useful message. Pydantic's default validation detail has ``loc``."""
+    bad_payload = {**VALID_PAYLOAD, "dimensions": {**VALID_PAYLOAD["dimensions"], "governance": 150.0}}
+    response = await client.post("/score", json=bad_payload)
+
+    assert response.status_code == 422
+    body = response.json()
+    assert "detail" in body
+    assert any(
+        "governance" in [str(part) for part in err.get("loc", [])]
+        for err in body["detail"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_score_422_body_identifies_missing_field(client):
+    bad_payload = {
+        "company_id": VALID_PAYLOAD["company_id"],
+        "dimensions": {k: v for k, v in VALID_PAYLOAD["dimensions"].items() if k != "finance"},
+    }
+    response = await client.post("/score", json=bad_payload)
+
+    assert response.status_code == 422
+    body = response.json()
+    assert any(
+        "finance" in [str(part) for part in err.get("loc", [])]
+        for err in body["detail"]
+    )

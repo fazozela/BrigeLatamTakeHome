@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI
 
+from . import __version__
+from .config import get_settings
 from .models import ScoreRequest, ScoreResponse
 from .scoring import assign_grade, compute_composite
 
@@ -33,14 +35,17 @@ Each dimension is rated **0–100**. The composite score is a weighted average:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_: FastAPI):
+    # Touch settings so configuration is validated at startup, not lazily on
+    # the first request. This also makes ``Config is wired up`` obvious.
+    get_settings()
     yield
 
 
 app = FastAPI(
     title="Company Health Score API",
     description=_DESCRIPTION,
-    version="0.1.0",
+    version=__version__,
     lifespan=lifespan,
 )
 
